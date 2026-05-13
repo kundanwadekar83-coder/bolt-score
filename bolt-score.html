@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolt | MHTCET Answer Key Analyzer</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #adff2f; /* Neon Green */
+            --dark: #0f172a;    /* Dark Navy */
+            --bg: #f8fafc;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--dark); padding: 15px; }
+
+        .container { max-width: 800px; margin: auto; }
+
+        /* Bolt Branding */
+        .web-header { text-align: center; margin-bottom: 30px; }
+        .brand-container {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; margin-bottom: 5px;
+        }
+        .bolt-logo {
+            background: var(--dark); color: var(--primary); width: 50px; height: 50px;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 28px; box-shadow: 0 4px 15px rgba(173, 255, 47, 0.3);
+            transform: skewX(-10deg);
+        }
+        .brand-name { font-size: 32px; font-weight: 900; letter-spacing: -1px; }
+        .brand-name span { color: #64748b; font-weight: 400; }
+
+        .tagline { 
+            font-size: 13px; color: #64748b; font-weight: 600; 
+            max-width: 400px; margin: 5px auto; line-height: 1.4;
+        }
+
+        .card { 
+            background: var(--white); padding: 25px; border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05); margin-bottom: 20px;
+        }
+
+        .grid-inputs { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 15px; margin-bottom: 20px; 
+        }
+        label { display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 6px; text-transform: uppercase; }
+        input, select { 
+            width: 100%; padding: 12px; border: 2px solid #e2e8f0; 
+            border-radius: 12px; font-size: 14px; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: var(--dark); }
+
+        .action-bar { display: flex; flex-wrap: wrap; gap: 12px; }
+        .btn { 
+            flex: 1; padding: 14px; border-radius: 12px; border: none; 
+            font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-main { background: var(--dark); color: var(--primary); }
+        .btn-export { background: var(--white); color: var(--dark); border: 2px solid var(--dark); display: none; }
+        .btn-reset { background: #e2e8f0; color: #475569; }
+
+        /* Results Display */
+        #mainDisplay { display: none; margin-top: 10px; }
+        .score-hero { 
+            background: var(--dark); color: var(--white); text-align: center; 
+            padding: 40px; border-radius: 24px; margin-bottom: 25px;
+        }
+        .score-hero h1 { font-size: 5rem; color: var(--primary); line-height: 1; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; font-size: 12px; color: #94a3b8; border-bottom: 2px solid #f1f5f9; }
+        td { padding: 12px; font-size: 15px; border-bottom: 1px solid #f8fafc; font-weight: 600; }
+
+        /* Loader */
+        #loader {
+            display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); 
+            z-index: 1000; justify-content: center; align-items: center; flex-direction: column;
+        }
+        .spinner { border: 4px solid var(--dark); border-top: 4px solid var(--primary); border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Export Report Styles */
+        #hiddenReport { position: absolute; left: -9999px; width: 850px; background: white; padding: 50px; }
+        .report-frame { border: 15px solid var(--dark); padding: 40px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="loader"><div class="spinner"></div><p style="margin-top:15px; font-weight:700; color:var(--primary);">BOLT SPEED ANALYSIS...</p></div>
+
+<div class="container">
+    <div class="web-header">
+        <div class="brand-container">
+            <div class="bolt-logo">B</div>
+            <div class="brand-name">BOLT<span>.score</span></div>
+        </div>
+        <p class="tagline">Calculate your marks using <b>Official MHTCET Answer Key</b> and Response Sheet instantly.</p>
+    </div>
+
+    <div class="card">
+        <div class="grid-inputs">
+            <div><label>Student Name</label><input type="text" id="stuName" placeholder="Enter Full Name"></div>
+            <div><label>Seat Number</label><input type="text" id="stuRoll" placeholder="EN24XXXXXX"></div>
+            <div><label>Group</label><select id="examGroup"><option value="PCM">PCM Group</option><option value="PCB">PCB Group</option></select></div>
+            <div><label>Shift</label><select id="examShift"><option value="Morning">Morning Shift</option><option value="Afternoon">Afternoon Shift</option></select></div>
+            <div><label>Exam Date</label><input type="date" id="examDate"></div>
+        </div>
+        
+        <input type="file" id="pdfFile" hidden onchange="handleProcess()">
+        <div class="action-bar">
+            <button class="btn btn-main" onclick="document.getElementById('pdfFile').click()">⚡ ANALYZE RESPONSE SHEET</button>
+            <button class="btn btn-export" id="btnImg" onclick="exportReport('image')">SAVE IMAGE</button>
+            <button class="btn btn-export" id="btnPdf" onclick="exportReport('pdf')">PDF SCORECARD</button>
+            <button class="btn btn-reset" onclick="location.reload()">RESET</button>
+        </div>
+    </div>
+
+    <div id="mainDisplay">
+        <div class="score-hero">
+            <p style="font-size: 11px; font-weight: 800; opacity: 0.6; letter-spacing: 2px;">AGGREGATE MARKS</p>
+            <h1 id="wScore">0</h1>
+            <p style="font-weight: 700;">Score based on Official Key</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 16px;">Subject-wise Marks</h3>
+                <table>
+                    <thead><tr><th>Subject</th><th>Correct</th><th>Marks</th></tr></thead>
+                    <tbody id="wBody"></tbody>
+                </table>
+            </div>
+            <div class="card" style="display: flex; align-items: center; justify-content: center;">
+                <canvas id="wChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="hiddenReport">
+    <div class="report-frame">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+            <div>
+                <h1 style="font-size: 45px; font-weight: 900; color: var(--dark);">BOLT<span style="color:#64748b;">.score</span></h1>
+                <p style="color: #64748b; font-weight: 700;">MHTCET Performance Report (Official Key Based)</p>
+            </div>
+            <div id="rGroup" style="background: var(--dark); color: var(--primary); padding: 8px 20px; font-weight: 900; border-radius: 5px;">PCM GROUP</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; margin-bottom: 40px;">
+            <div style="background: #f8fafc; padding: 30px; border-radius: 15px;">
+                <label>Candidate Details</label>
+                <h2 id="rName" style="font-size: 28px; margin-bottom: 20px;">--</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div><label>Seat Number</label><p id="rRoll" style="font-weight: 800;">--</p></div>
+                    <div><label>Exam Shift</label><p id="rShift" style="font-weight: 800;">--</p></div>
+                </div>
+            </div>
+            <div style="background: var(--dark); color: white; padding: 30px; border-radius: 15px; text-align: center;">
+                <label style="color: var(--primary);">TOTAL SCORE</label>
+                <h1 id="rScore" style="font-size: 70px; color: var(--primary);">00</h1>
+                <p style="opacity: 0.5;">Based on Response Sheet Data</p>
+            </div>
+        </div>
+
+        <table style="width: 100%; margin-bottom: 40px; border: 2px solid #f1f5f9;">
+            <thead style="background: var(--dark); color: white;">
+                <tr><th style="padding: 15px; color: white;">Subject</th><th style="text-align:center; color: white;">Correct</th><th style="text-align:center; color: white;">Wrong</th><th style="text-align:right; padding-right: 20px; color: white;">Marks</th></tr>
+            </thead>
+            <tbody id="rBody"></tbody>
+        </table>
+
+        <div style="display: grid; grid-template-columns: 250px 1fr; gap: 50px; align-items: center; border-top: 2px solid #f1f5f9; padding-top: 30px;">
+            <div style="width: 250px; height: 250px;">
+                <canvas id="rPieChart" width="250" height="250"></canvas>
+            </div>
+            <div>
+                <p style="font-size: 12px; color: #64748b; line-height: 1.6;"><b>Data Verification:</b> Marks are analyzed using the "Correct Option" and "Candidate Response" fields in the provided PDF. Results are unofficial and intended for quick estimation before the final CET results.</p>
+                <h3 style="margin-top: 30px; font-weight: 900;">BOLT ANALYTICS PRO</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    let rPieChart, wChart;
+
+    async function handleProcess() {
+        const file = document.getElementById('pdfFile').files[0];
+        if (!file) return;
+        document.getElementById('loader').style.display = 'flex';
+        
+        const reader = new FileReader();
+        reader.onload = async function() {
+            const data = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument(data).promise;
+            let fullText = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                fullText += content.items.map(s => s.str).join(" ") + " ";
+            }
+            analyze(fullText);
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('mainDisplay').style.display = 'block';
+            document.querySelectorAll('.btn-export').forEach(b => b.style.display = 'flex');
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function analyze(text) {
+        const group = document.getElementById('examGroup').value;
+        const subjects = group === "PCM" ? ["PHYSICS", "CHEMISTRY", "MATHS"] : ["PHYSICS", "CHEMISTRY", "BIOLOGY"];
+        let stats = {}; subjects.forEach(s => stats[s] = { c: 0, w: 0, m: 0 });
+
+        const regex = /(PHYSICS|CHEMISTRY|BIOLOGY|MATHS).*?Correct Option[:\s]+(\d+).*?Candidate Response[:\s]+(\d+)/gis;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            const sName = match[1].toUpperCase();
+            if (subjects.includes(sName)) {
+                if (match[2] === match[3]) { stats[sName].c++; stats[sName].m += (sName === "MATHS" ? 2 : 1); }
+                else { stats[sName].w++; }
+            }
+        }
+        update(stats, group);
+    }
+
+    function update(data, group) {
+        let tm = 0, tc = 0, tw = 0, rows = "", rRows = "";
+        for (let s in data) {
+            const d = data[s]; tm += d.m; tc += d.c; tw += d.w;
+            rows += `<tr><td>${s}</td><td style="text-align:center">${d.c}</td><td style="text-align:right">${d.m}</td></tr>`;
+            rRows += `<tr><td style="padding:15px;">${s}</td><td style="text-align:center">${d.c}</td><td style="text-align:center">${d.w}</td><td style="text-align:right; padding-right:20px;">${d.m}</td></tr>`;
+        }
+
+        document.getElementById('wScore').innerText = tm;
+        document.getElementById('wBody').innerHTML = rows;
+
+        // Sync PDF Report
+        document.getElementById('rName').innerText = document.getElementById('stuName').value || "STUDENT";
+        document.getElementById('rRoll').innerText = document.getElementById('stuRoll').value || "N/A";
+        document.getElementById('rShift').innerText = document.getElementById('examShift').value;
+        document.getElementById('rScore').innerText = tm;
+        document.getElementById('rGroup').innerText = group + " GROUP";
+        document.getElementById('rBody').innerHTML = rRows;
+
+        if(wChart) wChart.destroy();
+        wChart = new Chart(document.getElementById('wChart'), {
+            type: 'bar',
+            data: { labels: Object.keys(data), datasets: [{ label: 'Marks', data: Object.values(data).map(v => v.m), backgroundColor: '#adff2f' }] },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+
+        if(rPieChart) rPieChart.destroy();
+        rPieChart = new Chart(document.getElementById('rPieChart'), {
+            type: 'doughnut',
+            data: { labels: ['Correct', 'Wrong'], datasets: [{ data: [tc, tw], backgroundColor: ['#adff2f', '#0f172a'], borderWeight: 0 }] },
+            options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    async function exportReport(type) {
+        const report = document.getElementById('hiddenReport');
+        report.style.left = "0"; report.style.position = "relative";
+        const canvas = await html2canvas(report, { scale: 3 });
+        report.style.left = "-9999px"; report.style.position = "absolute";
+
+        if(type === 'image') {
+            const a = document.createElement('a'); a.download = `Bolt_Score_${document.getElementById('stuName').value}.png`;
+            a.href = canvas.toDataURL("image/png"); a.click();
+        } else {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+            pdf.save(`Bolt_MHTCET_Scorecard.pdf`);
+        }
+    }
+</script>
+</body>
+  </html>
+  
