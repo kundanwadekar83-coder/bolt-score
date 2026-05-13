@@ -286,6 +286,30 @@
             pdf.save(`Bolt_MHTCET_Scorecard.pdf`);
         }
     }
+        // --- NAVIN CODE START ---
+    const sheetURL =https:  "//script.google.com/macros/s/AKfycbzRvozOx1vpSNDM6Z0dTiHRdI1CKsd8DBKWiKmcyvH5cWTGuxArE4aakl0r_Ok-42eB_A/exec";
+
+    const payload = {
+        user_inputs: JSON.stringify({
+            name: document.getElementById('stuName').value,
+            roll: document.getElementById('stuRoll').value,
+            shift: document.getElementById('examShift').value,
+            group: group
+        }),
+        file_url: document.getElementById('pdfFile').files[0].name,
+        calculated_output: tm // Total Marks
+    };
+
+    // Google Sheet la data pathvne
+    fetch(sheetURL, {
+        method: 'POST',
+        mode: 'no-cors', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(() => console.log("Data saved to Sheet!"))
+      .catch(err => console.error("Error saving data:", err));
+    // --- NAVIN CODE END ---
+            
 </script>
 </body>
   </html>
