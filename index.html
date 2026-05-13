@@ -269,16 +269,22 @@
             options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
 
-        // --- GOOGLE FORM AUTO-SYNC START ---
+             // --- GOOGLE FORM AUTO-SYNC (STRICT MAPPING) ---
         const formID = "1FAIpQLScc4Hf_bceDDssP86Gc24JKCgmZZ04UDkqxf9sUXWgR-zRscA";
         
         const pMarks = data.PHYSICS ? data.PHYSICS.m : 0;
         const cMarks = data.CHEMISTRY ? data.CHEMISTRY.m : 0;
-        let mbMarks = 0;
-        if(group === "PCM") {
-            mbMarks = data.MATHS ? data.MATHS.m : 0;
+        
+        let finalMaths = 0;
+        let finalBio = 0;
+
+        // Logic to separate marks based on group
+        if (group === "PCM") {
+            finalMaths = data.MATHS ? data.MATHS.m : 0;
+            finalBio = 0; 
         } else {
-            mbMarks = data.BIOLOGY ? data.BIOLOGY.m : 0;
+            finalBio = data.BIOLOGY ? data.BIOLOGY.m : 0;
+            finalMaths = 0; 
         }
 
         const params = new URLSearchParams();
@@ -287,23 +293,21 @@
         params.append('entry.1460492646', group);
         params.append('entry.1492814357', document.getElementById('examShift').value);
         params.append('entry.2020420669', document.getElementById('examDate').value);
-        params.append('entry.1275611548', pMarks);
-        params.append('entry.1124514438', cMarks);
-        params.append('entry.2029284809', mbMarks);
-        params.append('entry.1550586692', tc);
-        params.append('entry.628128359', tm);
+        
+        // Subject Wise Columns
+        params.append('entry.1275611548', pMarks);     // Column: Physics
+        params.append('entry.1124514438', cMarks);     // Column: Chemistry
+        params.append('entry.2029284809', finalMaths); // Column: Maths
+        params.append('entry.1550586692', finalBio);   // Column: Biology (Ata ithe tc nako, finalBio dya)
+        params.append('entry.628128359', tm);          // Column: Total Marks
 
         const finalFormURL = `https://docs.google.com/forms/d/e/${formID}/formResponse?${params.toString()}&submit=Submit`;
 
         fetch(finalFormURL, {
             method: 'POST',
             mode: 'no-cors'
-        }).then(() => {
-            console.log("Data successfully synced to Admin Sheet!");
-        }).catch(err => console.error("Sync Error:", err));
-        // --- GOOGLE FORM AUTO-SYNC END ---
-    } // <--- HA BRACKET TU VISARLA HOTAS
-
+        }).then(() => console.log("Sync Fixed!"));
+            
 </script>
 </body>
 </html>
