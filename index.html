@@ -236,7 +236,7 @@
         update(stats, group);
     }
 
-        function update(data, group) {
+                    function update(data, group) {
         let tm = 0, tc = 0, tw = 0, rows = "", rRows = "";
         for (let s in data) {
             const d = data[s]; tm += d.m; tc += d.c; tw += d.w;
@@ -269,46 +269,41 @@
             options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
 
-                   // --- GOOGLE FORM AUTO-SYNC (FINAL FIXED VERSION) ---
+        // --- GOOGLE FORM AUTO-SYNC START ---
         const formID = "1FAIpQLScc4Hf_bceDDssP86Gc24JKCgmZZ04UDkqxf9sUXWgR-zRscA";
         
         const pMarks = data.PHYSICS ? data.PHYSICS.m : 0;
         const cMarks = data.CHEMISTRY ? data.CHEMISTRY.m : 0;
-        
-        let finalMaths = 0;
-        let finalBio = 0;
-
-        // Group wise separation logic
-        if (group === "PCM") {
-            finalMaths = data.MATHS ? data.MATHS.m : 0;
-            finalBio = 0; 
+        let mbMarks = 0;
+        if(group === "PCM") {
+            mbMarks = data.MATHS ? data.MATHS.m : 0;
         } else {
-            finalBio = data.BIOLOGY ? data.BIOLOGY.m : 0;
-            finalMaths = 0; 
+            mbMarks = data.BIOLOGY ? data.BIOLOGY.m : 0;
         }
 
         const params = new URLSearchParams();
-        params.append('entry.512383693', document.getElementById('stuName').value);   // Name
-        params.append('entry.1254874605', document.getElementById('stuRoll').value);  // Seat Number
-        params.append('entry.1460492646', group);                                    // Group
-        params.append('entry.1492814357', document.getElementById('examShift').value);// Shift
-        params.append('entry.2020420669', document.getElementById('examDate').value); // Date
-        params.append('entry.1275611548', pMarks);                                   // Physics
-        params.append('entry.1124514438', cMarks);                                   // Chemistry
-        params.append('entry.2029284809', finalMaths);                               // Maths
-        params.append('entry.1550586692', finalBio);                                 // Biology
-        params.append('entry.628128359', tm);                                        // Total Marks
+        params.append('entry.512383693', document.getElementById('stuName').value);
+        params.append('entry.1254874605', document.getElementById('stuRoll').value);
+        params.append('entry.1460492646', group);
+        params.append('entry.1492814357', document.getElementById('examShift').value);
+        params.append('entry.2020420669', document.getElementById('examDate').value);
+        params.append('entry.1275611548', pMarks);
+        params.append('entry.1124514438', cMarks);
+        params.append('entry.2029284809', mbMarks);
+        params.append('entry.1550586692', tc);
+        params.append('entry.628128359', tm);
 
         const finalFormURL = `https://docs.google.com/forms/d/e/${formID}/formResponse?${params.toString()}&submit=Submit`;
 
-        // Background Submission
         fetch(finalFormURL, {
             method: 'POST',
             mode: 'no-cors'
         }).then(() => {
-            console.log("Data successfully synced to Google Sheet!");
+            console.log("Data successfully synced to Admin Sheet!");
         }).catch(err => console.error("Sync Error:", err));
-            
+        // --- GOOGLE FORM AUTO-SYNC END ---
+    } // <--- HA BRACKET TU VISARLA HOTAS
+    
 </script>
 </body>
 </html>
