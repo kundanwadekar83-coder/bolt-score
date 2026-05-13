@@ -269,44 +269,43 @@
             options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
 
-        // --- GOOGLE SHEET SYNC (Update function chya aat takla aahe) ---
-        const sheetURL = "https://script.google.com/macros/s/AKfycbyLpiFZ0TC1mYqKzWOFG6Xx27AJbS-litGnMNRn95FaCedlIugsN15KuEMcKs4Z9_SLnw/exec";
-        const payload = {
-            user_inputs: JSON.stringify({
-                name: document.getElementById('stuName').value,
-                roll: document.getElementById('stuRoll').value,
-                shift: document.getElementById('examShift').value,
-                date: document.getElementById('examDate').value,
-                group: group
-            }),
-            file_url: document.getElementById('pdfFile').files[0] ? document.getElementById('pdfFile').files[0].name : "No File",
-            calculated_output: tm
-        };
-
-        fetch(sheetURL, {
-            method: 'POST',
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        }).then(() => console.log("Data saved to Sheet!"));
-    }
-
-    async function exportReport(type) {
-        const report = document.getElementById('hiddenReport');
-        report.style.left = "0"; report.style.position = "relative";
-        const canvas = await html2canvas(report, { scale: 3 });
-        report.style.left = "-9999px"; report.style.position = "absolute";
-
-        if(type === 'image') {
-            const a = document.createElement('a'); a.download = `Bolt_Score_${document.getElementById('stuName').value}.png`;
-            a.href = canvas.toDataURL("image/png"); a.click();
+             // --- GOOGLE FORM AUTO-SYNC START ---
+        const formID = "1FAIpQLScc4Hf_bceDDssP86Gc24JKCgmZZ04UDkqxf9sUXWgR-zRscA";
+        
+        // Subject wise marks variables
+        const pMarks = data.PHYSICS ? data.PHYSICS.m : 0;
+        const cMarks = data.CHEMISTRY ? data.CHEMISTRY.m : 0;
+        let mbMarks = 0;
+        if(group === "PCM") {
+            mbMarks = data.MATHS ? data.MATHS.m : 0;
         } else {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-            pdf.save(`Bolt_MHTCET_Scorecard.pdf`);
+            mbMarks = data.BIOLOGY ? data.BIOLOGY.m : 0;
         }
-    }
+
+        // Pre-filled URL parameters
+        const params = new URLSearchParams();
+        params.append('entry.512383693', document.getElementById('stuName').value);   // Name
+        params.append('entry.1254874605', document.getElementById('stuRoll').value);  // Seat Number
+        params.append('entry.1460492646', group);                                    // Group
+        params.append('entry.1492814357', document.getElementById('examShift').value);// Shift
+        params.append('entry.2020420669', document.getElementById('examDate').value); // Date
+        params.append('entry.1275611548', pMarks);                                   // Physics
+        params.append('entry.1124514438', cMarks);                                   // Chemistry
+        params.append('entry.2029284809', mbMarks);                                  // Maths/Bio
+        params.append('entry.1550586692', tc);                                       // Correct Count (tc)
+        params.append('entry.628128359', tm);                                        // Total Marks (tm)
+
+        const finalFormURL = `https://docs.google.com/forms/d/e/${formID}/formResponse?${params.toString()}&submit=Submit`;
+
+        // Background submission (User la na vicharta data sheet madhe jail)
+        fetch(finalFormURL, {
+            method: 'POST',
+            mode: 'no-cors'
+        }).then(() => {
+            console.log("Data successfully synced to Admin Sheet!");
+        }).catch(err => console.error("Sync Error:", err));
+        // --- GOOGLE FORM AUTO-SYNC END ---
+
 </script>
 </body>
 </html>
