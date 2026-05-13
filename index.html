@@ -269,7 +269,7 @@
             options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
 
-             // --- GOOGLE FORM AUTO-SYNC (STRICT MAPPING) ---
+                   // --- GOOGLE FORM AUTO-SYNC (FINAL FIXED VERSION) ---
         const formID = "1FAIpQLScc4Hf_bceDDssP86Gc24JKCgmZZ04UDkqxf9sUXWgR-zRscA";
         
         const pMarks = data.PHYSICS ? data.PHYSICS.m : 0;
@@ -278,7 +278,7 @@
         let finalMaths = 0;
         let finalBio = 0;
 
-        // Logic to separate marks based on group
+        // Group wise separation logic
         if (group === "PCM") {
             finalMaths = data.MATHS ? data.MATHS.m : 0;
             finalBio = 0; 
@@ -288,25 +288,26 @@
         }
 
         const params = new URLSearchParams();
-        params.append('entry.512383693', document.getElementById('stuName').value);
-        params.append('entry.1254874605', document.getElementById('stuRoll').value);
-        params.append('entry.1460492646', group);
-        params.append('entry.1492814357', document.getElementById('examShift').value);
-        params.append('entry.2020420669', document.getElementById('examDate').value);
-        
-        // Subject Wise Columns
-        params.append('entry.1275611548', pMarks);     // Column: Physics
-        params.append('entry.1124514438', cMarks);     // Column: Chemistry
-        params.append('entry.2029284809', finalMaths); // Column: Maths
-        params.append('entry.1550586692', finalBio);   // Column: Biology (Ata ithe tc nako, finalBio dya)
-        params.append('entry.628128359', tm);          // Column: Total Marks
+        params.append('entry.512383693', document.getElementById('stuName').value);   // Name
+        params.append('entry.1254874605', document.getElementById('stuRoll').value);  // Seat Number
+        params.append('entry.1460492646', group);                                    // Group
+        params.append('entry.1492814357', document.getElementById('examShift').value);// Shift
+        params.append('entry.2020420669', document.getElementById('examDate').value); // Date
+        params.append('entry.1275611548', pMarks);                                   // Physics
+        params.append('entry.1124514438', cMarks);                                   // Chemistry
+        params.append('entry.2029284809', finalMaths);                               // Maths
+        params.append('entry.1550586692', finalBio);                                 // Biology
+        params.append('entry.628128359', tm);                                        // Total Marks
 
         const finalFormURL = `https://docs.google.com/forms/d/e/${formID}/formResponse?${params.toString()}&submit=Submit`;
 
+        // Background Submission
         fetch(finalFormURL, {
             method: 'POST',
             mode: 'no-cors'
-        }).then(() => console.log("Sync Fixed!"));
+        }).then(() => {
+            console.log("Data successfully synced to Google Sheet!");
+        }).catch(err => console.error("Sync Error:", err));
             
 </script>
 </body>
