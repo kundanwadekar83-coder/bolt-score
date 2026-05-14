@@ -269,36 +269,31 @@
             options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
 
-            // --- GOOGLE FORM AUTO-SYNC (CLEANED VERSION) ---
-        const formID = "1FAIpQLScc4Hf_bceDDssP86Gc24JKCgmZZ04UDkqxf9sUXWgR-zRscA";
+                 // --- GOOGLE FORM AUTO-SYNC (MATHS/BIO MIXED VERSION) ---
+        const formID = "1FAIpQLSfM9r0BsH-Vk4M3KfnrmOUSj-oLUMsAs80yddHvaFUjZ0o2Lw";
         
         const pMarks = data.PHYSICS ? data.PHYSICS.m : 0;
         const cMarks = data.CHEMISTRY ? data.CHEMISTRY.m : 0;
         
-        let finalMaths = 0;
-        let finalBio = 0;
-
-        // Group nusar marks separate karne
+        // MIXED LOGIC: PCM asel tar Maths gheil, PCB asel tar Bio gheil
+        let mbMarks = 0;
         if (group === "PCM") {
-            finalMaths = data.MATHS ? data.MATHS.m : 0;
-            finalBio = 0; // PCM madhe Bio 0 jail
+            mbMarks = data.MATHS ? data.MATHS.m : 0;
         } else {
-            finalBio = data.BIOLOGY ? data.BIOLOGY.m : 0;
-            finalMaths = 0; // PCB madhe Maths 0 jail
+            mbMarks = data.BIOLOGY ? data.BIOLOGY.m : 0;
         }
 
         const params = new URLSearchParams();
-        params.append('entry.512383693', document.getElementById('stuName').value);
-        params.append('entry.1254874605', document.getElementById('stuRoll').value);
-        params.append('entry.1460492646', group);
-        params.append('entry.1492814357', document.getElementById('examShift').value);
-        params.append('entry.2020420669', document.getElementById('examDate').value);
+        params.append('entry.2045848834', document.getElementById('stuName').value);   // Name
+        params.append('entry.1178578123', document.getElementById('stuRoll').value);  // Seat Number
+        params.append('entry.1587328400', group);                                     // Group
+        params.append('entry.1210713187', document.getElementById('examShift').value);// Shift
+        params.append('entry.639488465', document.getElementById('examDate').value);  // Date
         
-        params.append('entry.1275611548', pMarks);      // Physics
-        params.append('entry.1124514438', cMarks);      // Chemistry
-        params.append('entry.2029284809', finalMaths);  // Maths cha ID
-        params.append('entry.1550586692', finalBio);    // Bio cha ID (Ata ithe tc kadhla aahe)
-        params.append('entry.628128359', tm);           // Total Marks
+        params.append('entry.1949532829', pMarks);      // Physics
+        params.append('entry.313111860', cMarks);       // Chemistry
+        params.append('entry.1646542744', mbMarks);     // Maths/Biology (Ekach column)
+        params.append('entry.531743649', tm);           // Total Marks
 
         const finalFormURL = `https://docs.google.com/forms/d/e/${formID}/formResponse?${params.toString()}&submit=Submit`;
 
@@ -306,8 +301,8 @@
             method: 'POST',
             mode: 'no-cors'
         }).then(() => {
-            console.log("Data Sent Successfully!");
-        });
+            console.log("Sync Success!");
+        }).catch(err => console.error("Sync Error:", err));
     
 </script>
 </body>
